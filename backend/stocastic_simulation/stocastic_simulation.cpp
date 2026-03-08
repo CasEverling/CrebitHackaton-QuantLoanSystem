@@ -41,11 +41,27 @@ std::vector<std::vector<double>> StochasticSimulator::stochastic_analysis(size_t
     auto pay_days = DataBaseManager::get_pay_days({1, SSN, location, ocupation});
 
     max_iterations = 0;
+    auto N = return_value[i][size];
+
+    #pragma omp parallel for
+    for (int i = 0; i < N; i++) {
+        auto data = MC{
+                    .day = i % 30 + 1,
+                    .month = (i / 30) % 12 + 1,
+                    .year = 2020 + (j / 360),
+                    .day_of_week = i % 7,
+                    .location_id = location,
+                    .profession_id = ocupation
+                };
+        records[data] = predict_variation(data);
+    }
 
     #pragma omp parallel 
     {
         bool is_main_thread = omp_get_thread_num() == 0;
         int curr_iteration = 0;
+
+        #pragma omp for
         for (size_t i = 0; i < return_value.size(); ++i) {
             for (size_t j = 1; j < return_value[i].size(); ++j) {
                 auto data = MC{
@@ -57,33 +73,15 @@ std::vector<std::vector<double>> StochasticSimulator::stochastic_analysis(size_t
                     .profession_id = ocupation
                 };
                 
-                if (curr_iteration >= max_iterations.load(std::memory_order_acquire)) {
-                    if (!is_main_thread) {
-                        do {
-                            _mm_stop(); // Sipins until other threas does its work
-                        } while (curr_iteration >= max_iterations.load(std::memory_order_acquire));
+            
+                return_value[i][j] = 
+                    standard_normal_distribution() * records[data].second + 
+                    records[data].first + 
+                    pay_days[Date{.day = data.day, .month = data.month, .year = data.year}];
 
-                        return_value[i][j] = 
-                            standard_normal_distribution() * records[data].second + 
-                            records[data].first + 
-                            pay_days[Date{.day = data.day, .month = data.month, .year = data.year}];
-                    }
-                    else {
-                        records[data] = predict_variation(data);
-                        // Aditio0n is replicated to ensure that the main thread does its wotk before other
-                        // Reduced odds of other threads catching up to the main thread
-                        // Avoid unnecessary spins with _mm_pause()
-                        return_value[i][j] =
-                            standard_normal_distribution() * records[data].second + 
-                            records[data].first + 
-                            pay_days[Date{.day = data.day, .month = data.month, .year = data.year}];
-                        max_iterations.fetch_add(1, std::memory_order_release);
-                    }
-                }
             }
         }
     }
-    
 
     return std::move(return_value);
 }

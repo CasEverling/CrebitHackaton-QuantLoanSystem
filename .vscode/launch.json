@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/cassio/Documents/Coding/hackaton/CrebitHackaton-QuantLoanSystem/backend/stocastic_simulation",
+      "program": "/Users/cassio/Documents/Coding/hackaton/CrebitHackaton-QuantLoanSystem/backend/stocastic_simulation/build/Debug/outDebug"
+    }
+  ]
+}
