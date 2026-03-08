@@ -26,12 +26,15 @@
 
 class DataBaseManager {
     private:
-        void createDatabase();
-        void loadDatabase();
+        static void createDatabase();
+        static void loadDatabase();
 
-        std::unordered_map<DataRequest, std::weak_ptr> cache;
-
+        static std::unordered_map<DataRequest, std::weak_ptr<double>> cache;
+        //TODO: create all objects to hold pointers
+        
     public:
-        std::shared_ptr<std::vector<double>> get_variance_history(const DataRequest& data);
-        std::shared_pr<std::vector<std::pair<Date, double>> get_pay_days(const DataRequest& data);
+        static std::shared_ptr<std::vector<double>> get_variance_history(const DataRequest& data);
+        static std::shared_ptr<std::unordered_map<Date, double>> get_pay_days(const DataRequest& data);
+        static size_t get_current_job(size_t SSN);
+        static size_t get_current_location(size_t SSN);
 }

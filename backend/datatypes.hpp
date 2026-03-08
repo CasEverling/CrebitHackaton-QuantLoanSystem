@@ -27,7 +27,7 @@ struct _date {
     int day;
     int month;
     int year;
-}
+};
 
 namespace std {
     template <>
@@ -57,7 +57,7 @@ struct _data_request {
     size_t ssn; // 0 refers to any
     size_t location;
     size_t job;
-}
+};
 
 namespace std {
     template <>
@@ -82,5 +82,5 @@ namespace std {
 using DataRequest = struct _data_request;
 using MB = struct _market_behavior;
 using MC = struct _market_context;
-using variation_dp = std::unordered_map<MC, std::pair<double,double>>
+using variation_dp = std::unordered_map<MC, std::pair<double,double>>;
 using Date = struct _date;

@@ -98,6 +98,7 @@ DataBaseManager::get_variance_history(const DataRequest& data) {
     if (cache.find(data) != cache.end())
         if (auto sharedFromWeak = weak.lock())
             return std::move(sharedFromWeak);
+            
     // Perform query
     // Create Vector
     // Return pointer to vector
