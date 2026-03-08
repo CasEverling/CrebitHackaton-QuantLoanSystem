@@ -1,8 +1,64 @@
-export const apiService = {
-  async simulateCredit(userData) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+// Interfaces para tipagem
+interface MonteCarloRequest {
+  ssn: number;
+  loan_amount: number;
+  max_interest_rate: number;
+  pay_day: number;
+  min_profit: number;
+}
 
-    const realBackendData = {
+interface Statistics {
+  avg_profit: number;
+  profit_std_dev: number;
+  repayment_probability: number;
+  max_profit: number;
+  min_profit: number;
+  confidence_interval: {
+    lower: number;
+    upper: number;
+    confidence: number;
+  };
+}
+
+interface InterestRateSweep {
+  interest_rate: number;
+  avg_profit: number;
+  repayment_probability: number;
+}
+
+interface MonteCarloResponse {
+  recommended_interest_rate: number;
+  viable: boolean;
+  paths: number[][];
+  statistics: Statistics;
+  interest_rate_sweep: InterestRateSweep[];
+}
+
+interface SimulationDataPoint {
+  name: string;
+  avg: number;
+  min: number;
+  max: number;
+}
+
+interface ApiResponse {
+  request: MonteCarloRequest;
+  response: MonteCarloResponse;
+  simulationData: SimulationDataPoint[];
+}
+
+interface UserData {
+  [key: string]: any; // TODO: Definir interface mais específica
+}
+
+export const apiService = {
+  async simulateCredit(_userData: UserData): Promise<ApiResponse> {
+    await new Promise<void>(resolve => setTimeout(resolve, 1000));
+
+    const realBackendData: {
+      request: MonteCarloRequest;
+      response: MonteCarloResponse;
+    } = {
       "request": { "ssn": 123456789, "loan_amount": 10000.00, "max_interest_rate": 0.15, "pay_day": 10, "min_profit": 500.00 },
       "response": {
         "recommended_interest_rate": 0.087,
@@ -29,7 +85,7 @@ export const apiService = {
     };
 
     // Formata os "paths" para o gráfico de linhas (opcional, mas legal para o visual)
-    const formattedPaths = realBackendData.response.paths[0].map((val, i) => ({
+    const formattedPaths: SimulationDataPoint[] = realBackendData.response.paths[0].map((val: number, i: number) => ({
       name: `T${i+1}`,
       avg: val,
       min: realBackendData.response.statistics.confidence_interval.lower,
