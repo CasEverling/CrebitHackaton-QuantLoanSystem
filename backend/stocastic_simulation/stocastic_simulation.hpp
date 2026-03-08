@@ -4,9 +4,16 @@
 #include <memory>
 #include <shared_mutex>
 #include <unordered_map>
-#include "../backend/datatypes.hpp"
+#include "datatypes.hpp"
 
-#define N_SIMULATIONS 100_000
+#define N_SIMULATIONS 100000
+
+// Replace records with a richer cache struct
+struct DayCache {
+    double mean;
+    double sd;
+    double payday;
+};
 
 class StochasticSimulator {
     private:
@@ -30,6 +37,11 @@ class StochasticSimulator {
             Date start_date,
             Date end_date,
             int num_payments
+        );
+
+        std::vector<double> get_payment_schedule_odds(
+            size_t SSN, double amount, double interest_rate,
+            Date start_date, Date end_date, int num_payments
         );
 
     public:
