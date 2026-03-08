@@ -37,7 +37,7 @@ class StochasticSimulator {
 
         std::vector<std::pair<double, double>> stochastic_analysis_properties(size_t SSN, Date max_date);
         std::vector<std::pair<double, double>> stochastic_analysis_properties(size_t SSN, size_t ocupation, size_t location, Date max_date);
-    private:
+
         std::vector<bool> evaluate_milestones(
             const std::vector<std::vector<double>>& paths,
             const std::vector<std::pair<Date, double>>& milestones,
@@ -57,7 +57,6 @@ class StochasticSimulator {
             Date start_date, Date end_date, int num_payments
         );
 
-    public:
         double get_loan_payment_odds_percent(size_t SSN, double amount, double interest_rate, Date date);
         double get_estimated_loan_profit(size_t SSN, double amount, double interest_rate, Date date);
         double get_best_interest_for_profit(size_t SSN, double amount, Date date);
