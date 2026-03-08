@@ -31,13 +31,13 @@ LoanAnalysis analyze_loan(
 class StochasticSimulator {
     private:
         std::pair<double, double> predict_variation(MC& market_context);
-
+    public:
         std::vector<std::vector<double>> stochastic_analysis(size_t SSN, Date max_date);
         std::vector<std::vector<double>> stochastic_analysis(size_t SSN, size_t ocupation, size_t location, Date max_date);
 
         std::vector<std::pair<double, double>> stochastic_analysis_properties(size_t SSN, Date max_date);
         std::vector<std::pair<double, double>> stochastic_analysis_properties(size_t SSN, size_t ocupation, size_t location, Date max_date);
-
+    private:
         std::vector<bool> evaluate_milestones(
             const std::vector<std::vector<double>>& paths,
             const std::vector<std::pair<Date, double>>& milestones,
