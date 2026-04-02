@@ -491,3 +491,26 @@ void DataBaseManager::addCreditInformation(size_t clientSSN,
 
     txn.commit();
 }
+
+double DataBaseManager::get_latest_balance(size_t SSN) {
+    // This is a template implementation.
+    // Replace with your specific DB driver calls (e.g., sqlite3_exec, pqxx, etc.)
+
+    try {
+        std::string query = "SELECT balance FROM account_history "
+                            "WHERE ssn = " + std::to_string(SSN) + " "
+                            "ORDER BY timestamp DESC LIMIT 1;";
+
+        // Example pseudo-code for DB execution:
+        // auto result = db.execute(query);
+        // if (result.empty()) return 0.0;
+        // return std::stod(result[0]["balance"]);
+
+        // FOR DEMO/MOCK PURPOSES:
+        return 1000.0;
+
+    } catch (...) {
+        // Fallback for simulation safety
+        return 0.0;
+    }
+}

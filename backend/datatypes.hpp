@@ -15,14 +15,16 @@ struct _market_context {
     int day_of_week;
     size_t location_id;
     size_t profession_id;
+    size_t ssn;           // added: needed by predict_variation for individual history
 
     bool operator==(const _market_context& other) const {
-        return day == other.day &&
-               month == other.month &&
-               year == other.year &&
-               day_of_week == other.day_of_week &&
-               location_id == other.location_id &&
-               profession_id == other.profession_id;
+        return day           == other.day           &&
+               month         == other.month         &&
+               year          == other.year          &&
+               day_of_week   == other.day_of_week   &&
+               location_id   == other.location_id   &&
+               profession_id == other.profession_id &&
+               ssn           == other.ssn;
     }
 };
 
@@ -30,7 +32,6 @@ namespace std {
     template <>
     struct hash<_market_context> {
         size_t operator()(const _market_context& mc) const {
-            // Função auxiliar simples para combinar hashes
             auto hash_combine = [](size_t& seed, size_t v) {
                 seed ^= v + 0x9e3779b9 + (seed << 6) + (seed >> 2);
             };
@@ -42,7 +43,7 @@ namespace std {
             hash_combine(h, hash<int>{}(mc.day_of_week));
             hash_combine(h, hash<size_t>{}(mc.location_id));
             hash_combine(h, hash<size_t>{}(mc.profession_id));
-            
+            hash_combine(h, hash<size_t>{}(mc.ssn));   // added
             return h;
         }
     };
@@ -53,7 +54,7 @@ struct _date {
     int month;
     int year;
 
-    // ── prefix ++  (mutates and returns self) ──────────────────────────
+    // ── prefix ++ ──────────────────────────────────────────────────────
     _date& operator++() {
         std::tm t{};
         t.tm_mday = day;
@@ -68,7 +69,7 @@ struct _date {
         return *this;
     }
 
-    // ── postfix ++  (returns old value, then increments) ───────────────
+    // ── postfix ++ ─────────────────────────────────────────────────────
     _date operator++(int) {
         _date old = *this;
         ++(*this);
@@ -88,8 +89,6 @@ struct _date {
     }
 
     // ── difference in days (a - b) ─────────────────────────────────────
-    // Binary operators with two independent operands must be free functions
-    // or you use *this as the left-hand side. Using *this here.
     int operator-(const _date& b) const {
         std::tm ta{}, tb{};
         ta.tm_mday = day;   ta.tm_mon = month - 1;   ta.tm_year = year  - 1900;
@@ -110,8 +109,7 @@ struct _date {
     }
 };
 
-
-// ── day of week (free function — doesn't belong on the struct) ─────────
+// ── day of week (free function) ────────────────────────────────────────
 // Returns 0 = Sunday … 6 = Saturday  (matches tm_wday)
 inline int day_of_week(const _date& d) {
     std::tm t{};
@@ -124,17 +122,17 @@ inline int day_of_week(const _date& d) {
 
 struct _data_request {
     size_t resolution;
-    size_t ssn; // 0 refers to any
+    size_t ssn;        // 0 = class-level query
     size_t location;
     size_t job;
 };
 
 
-using DataRequest = struct _data_request;
-using MB = struct _market_behavior;
-using MC = struct _market_context;
+using DataRequest  = struct _data_request;
+using MB           = struct _market_behavior;
+using MC           = struct _market_context;
 using variation_dp = std::unordered_map<MC, std::pair<double,double>>;
-using Date = struct _date;
+using Date         = struct _date;
 
 // ── operator== for unordered_map keys ────────────────────────────────
 

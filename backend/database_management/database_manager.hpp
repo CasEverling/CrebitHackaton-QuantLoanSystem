@@ -34,7 +34,7 @@ public:
 
     static size_t get_current_job(size_t clientSSN);
     static size_t get_current_location(size_t clientSSN);
-
+    static double get_latest_balance(size_t SSN);
     // ── Write ────────────────────────────────────────────────────────────
 
     // Register a new manager (bank, fintech, advisor)
