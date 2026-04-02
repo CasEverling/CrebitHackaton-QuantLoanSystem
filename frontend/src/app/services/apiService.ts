@@ -1,5 +1,23 @@
-// Interfaces para tipagem
-interface MonteCarloRequest {
+const API_BASE = "http://localhost:8080";
+
+export interface Client {
+  id: string;
+  name: string;
+  occupation: string;
+  location: string;
+  incomeFixed: number;
+  incomeVariable: number;
+  bankConnected: boolean;
+}
+
+export interface SimulationDataPoint {
+  name: string;
+  avg: number;
+  min: number;
+  max: number;
+}
+
+export interface MonteCarloRequest {
   ssn: number;
   loan_amount: number;
   max_interest_rate: number;
@@ -7,7 +25,7 @@ interface MonteCarloRequest {
   min_profit: number;
 }
 
-interface Statistics {
+export interface Statistics {
   avg_profit: number;
   profit_std_dev: number;
   repayment_probability: number;
@@ -20,13 +38,13 @@ interface Statistics {
   };
 }
 
-interface InterestRateSweep {
+export interface InterestRateSweep {
   interest_rate: number;
   avg_profit: number;
   repayment_probability: number;
 }
 
-interface MonteCarloResponse {
+export interface MonteCarloResponse {
   recommended_interest_rate: number;
   viable: boolean;
   paths: number[][];
@@ -34,67 +52,77 @@ interface MonteCarloResponse {
   interest_rate_sweep: InterestRateSweep[];
 }
 
-interface SimulationDataPoint {
-  name: string;
-  avg: number;
-  min: number;
-  max: number;
-}
-
-interface ApiResponse {
+export interface ApiResponse {
   request: MonteCarloRequest;
   response: MonteCarloResponse;
   simulationData: SimulationDataPoint[];
 }
 
-interface UserData {
-  [key: string]: any; // TODO: Define more specific interface
+// ── fetch all clients for the banner list ─────────────────────────────
+export async function fetchClients(): Promise<Client[]> {
+  const res = await fetch(`${API_BASE}/clients`);
+  if (!res.ok) throw new Error(`Failed to fetch clients: ${res.status}`);
+  return res.json();
 }
 
-export const apiService = {
-  async simulateCredit(_userData: UserData): Promise<ApiResponse> {
-    await new Promise<void>(resolve => setTimeout(resolve, 1000));
+// ── run Monte Carlo simulation for a client ───────────────────────────
+export async function simulateCredit(params: {
+  clientId: string;
+  loanAmount: number;
+  maxInterestRate: number;
+  payDay: number;        // day of month, e.g. 10
+  minProfit: number;
+}): Promise<ApiResponse> {
+  const body: MonteCarloRequest = {
+    ssn:               parseInt(params.clientId),
+    loan_amount:       params.loanAmount,
+    max_interest_rate: params.maxInterestRate,
+    pay_day:           params.payDay,
+    min_profit:        params.minProfit,
+  };
 
-    const realBackendData: {
-      request: MonteCarloRequest;
-      response: MonteCarloResponse;
-    } = {
-      "request": { "ssn": 123456789, "loan_amount": 10000.00, "max_interest_rate": 0.15, "pay_day": 10, "min_profit": 500.00 },
-      "response": {
-        "recommended_interest_rate": 0.087,
-        "viable": true,
-        "paths": [
-          [1250.50, 1380.20, 900.10, 1450.00, 1200.75],
-          [1100.00, 1420.30, 1350.80, 980.50, 1300.00]
-        ],
-        "statistics": {
-          "avg_profit": 1243.50,
-          "profit_std_dev": 312.80,
-          "repayment_probability": 0.873,
-          "max_profit": 3200.00,
-          "min_profit": -800.00,
-          "confidence_interval": { "lower": 620.00, "upper": 1980.00, "confidence": 0.95 }
-        },
-        "interest_rate_sweep": [
-          { "interest_rate": 0.05, "avg_profit": 420.00, "repayment_probability": 0.95 },
-          { "interest_rate": 0.08, "avg_profit": 780.00, "repayment_probability": 0.89 },
-          { "interest_rate": 0.12, "avg_profit": 1100.00, "repayment_probability": 0.81 },
-          { "interest_rate": 0.15, "avg_profit": 1320.00, "repayment_probability": 0.74 }
-        ]
-      }
-    };
+  const res = await fetch(`${API_BASE}/analyze`, {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify(body),
+  });
 
-    // Format the "paths" for the line chart (optional, but nice for the visual)
-    const formattedPaths: SimulationDataPoint[] = realBackendData.response.paths[0].map((val: number, i: number) => ({
-      name: `T${i+1}`,
-      avg: val,
-      min: realBackendData.response.statistics.confidence_interval.lower,
-      max: realBackendData.response.statistics.confidence_interval.upper
-    }));
-
-    return {
-      ...realBackendData,
-      simulationData: formattedPaths // Injects the formatted data for the chart
-    };
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error ?? "Simulation failed");
   }
+
+  const data = await res.json();
+
+  // The backend wraps request + response together.
+  // Build simulationData from the paths for the chart.
+  const paths: number[][] = data.response?.paths ?? [];
+  const simulationData: SimulationDataPoint[] = [];
+
+  if (paths.length > 0) {
+    const len = paths[0].length;
+    for (let i = 0; i < len; i++) {
+      const vals = paths.map(p => p[i]);
+      simulationData.push({
+        name: `T${i + 1}`,
+        avg:  vals.reduce((a, b) => a + b, 0) / vals.length,
+        min:  Math.min(...vals),
+        max:  Math.max(...vals),
+      });
+    }
+  }
+
+  return { ...data, simulationData };
+}
+
+// Legacy wrapper so existing code using apiService.simulateCredit() still works
+export const apiService = {
+  simulateCredit: (formData: any) =>
+    simulateCredit({
+      clientId:         formData.clientId ?? String(formData.ssn ?? "0"),
+      loanAmount:       formData.loanAmount ?? formData.loan_amount ?? 5000,
+      maxInterestRate:  formData.maxInterestRate ?? formData.max_interest_rate ?? 0.15,
+      payDay:           formData.payDay ?? formData.pay_day ?? 10,
+      minProfit:        formData.minProfit ?? formData.min_profit ?? 0,
+    }),
 };

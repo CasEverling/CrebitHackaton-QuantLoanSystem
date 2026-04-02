@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { mockClients, Client } from "../data/mockData";
+import { fetchClients, Client } from "../services/apiService";
 import { Search, UserPlus, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 
 export function ClientList() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [clients] = useState<Client[]>(mockClients);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
+
+  useEffect(() => {
+    fetchClients()
+      .then(setClients)
+      .catch(err => console.error("Failed to load clients:", err))
+      .finally(() => setLoadingClients(false));
+  }, []);
 
   const filteredClients = clients.filter(
     (client) =>
