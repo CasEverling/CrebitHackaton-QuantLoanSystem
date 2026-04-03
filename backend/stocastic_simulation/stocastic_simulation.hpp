@@ -29,7 +29,6 @@ LoanAnalysis analyze_loan(
 
 class StochasticSimulator {
     private:
-<<<<<<< HEAD
         // Histories are fetched once in stochastic_analysis and passed in —
         // no DB calls happen inside predict_variation.
         std::pair<double, double> predict_variation(
@@ -77,45 +76,6 @@ class StochasticSimulator {
         double get_minimum_interest_for_profit(size_t SSN, double amount, std::vector<double> interest_rates, const std::vector<std::pair<Date, double>>& milestones, Date start_date);
 
         // ── schedule convenience ──────────────────────────────────────
-=======
-        std::pair<double, double> predict_variation(MC& market_context);
-    public:
-        std::vector<std::vector<double>> stochastic_analysis(size_t SSN, Date max_date);
-        std::vector<std::vector<double>> stochastic_analysis(size_t SSN, size_t ocupation, size_t location, Date max_date);
-
-        std::vector<std::pair<double, double>> stochastic_analysis_properties(size_t SSN, Date max_date);
-        std::vector<std::pair<double, double>> stochastic_analysis_properties(size_t SSN, size_t ocupation, size_t location, Date max_date);
-
-        std::vector<bool> evaluate_milestones(
-            const std::vector<std::vector<double>>& paths,
-            const std::vector<std::pair<Date, double>>& milestones,
-            Date start_date,
-            double interest_rate
-        );
-
-        std::vector<std::pair<Date, double>> build_installment_schedule(
-            double total_repayment,
-            Date start_date,
-            Date end_date,
-            int num_payments
-        );
-
-        std::vector<double> get_payment_schedule_odds(
-            size_t SSN, double amount, double interest_rate,
-            Date start_date, Date end_date, int num_payments
-        );
-
-        double get_loan_payment_odds_percent(size_t SSN, double amount, double interest_rate, Date date);
-        double get_estimated_loan_profit(size_t SSN, double amount, double interest_rate, Date date);
-        double get_best_interest_for_profit(size_t SSN, double amount, Date date);
-        double get_minimum_interest_for_profit(size_t SSN, double amount, std::vector<double> interest_rates, Date date);
-
-        double get_loan_payment_odds_percent(size_t SSN, double amount, double interest_rate, const std::vector<std::pair<Date, double>>& milestones, Date start_date);
-        double get_estimated_loan_profit(size_t SSN, double amount, double interest_rate, const std::vector<std::pair<Date, double>>& milestones, Date start_date);
-        double get_best_interest_for_profit(size_t SSN, double amount, const std::vector<std::pair<Date, double>>& milestones, Date start_date);
-        double get_minimum_interest_for_profit(size_t SSN, double amount, std::vector<double> interest_rates, const std::vector<std::pair<Date, double>>& milestones, Date start_date);
-
->>>>>>> 263c7fa845312deb6526f9d8a432450becf9e19d
         double get_loan_payment_odds_percent(size_t SSN, double amount, double interest_rate, Date start_date, Date end_date, int num_payments);
         double get_estimated_loan_profit(size_t SSN, double amount, double interest_rate, Date start_date, Date end_date, int num_payments);
         double get_best_interest_for_profit(size_t SSN, double amount, Date start_date, Date end_date, int num_payments);
