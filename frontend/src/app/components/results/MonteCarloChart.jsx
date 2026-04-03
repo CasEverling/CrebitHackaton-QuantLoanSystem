@@ -43,7 +43,7 @@ export default function MonteCarloChart({ data }) {
               Monte Carlo Simulation - Uncertainty Range
             </h3>
             <p className="text-sm text-slate-600 mt-1">
-              10,000 simulated paths in C++ | 95% confidence interval
+              Simulated paths from C++ engine
             </p>
           </div>
           <div className="h-80 w-full flex items-center justify-center bg-slate-50 rounded-lg">
@@ -62,7 +62,7 @@ export default function MonteCarloChart({ data }) {
             Monte Carlo Simulation - Uncertainty Range
           </h3>
           <p className="text-sm text-slate-600 mt-1">
-            10,000 simulated paths in C++ | 95% confidence interval
+            Simulated paths from C++ engine
           </p>
         </div>
 

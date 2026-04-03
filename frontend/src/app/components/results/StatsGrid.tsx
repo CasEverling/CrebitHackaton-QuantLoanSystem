@@ -1,14 +1,14 @@
-import { TrendingUp, DollarSign, Percent, Calendar } from "lucide-react";
+import { TrendingUp, DollarSign, Percent, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "../../ui/card";
 
 interface StatsGridProps {
-  avgProfit: number;
-  stdDev: number;
-  confidenceLower: number;
-  confidenceUpper: number;
+  estimatedProfit: number;
+  repaymentProbability: number;
+  minimumViableRate: number | null;
+  viable: boolean;
 }
 
-export function StatsGrid({ avgProfit, stdDev, confidenceLower, confidenceUpper }: StatsGridProps) {
+export function StatsGrid({ estimatedProfit, repaymentProbability, minimumViableRate, viable }: StatsGridProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -17,29 +17,31 @@ export function StatsGrid({ avgProfit, stdDev, confidenceLower, confidenceUpper 
     }).format(value);
   };
 
+  const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
+
   const stats = [
     {
-      label: "Average Profit",
-      value: formatCurrency(avgProfit),
+      label: "Estimated Profit",
+      value: formatCurrency(estimatedProfit),
       icon: DollarSign,
       color: "text-indigo-600"
     },
     {
-      label: "Standard Deviation",
-      value: formatCurrency(stdDev),
-      icon: TrendingUp,
+      label: "Repayment Probability",
+      value: formatPercent(repaymentProbability),
+      icon: Percent,
       color: "text-purple-600"
     },
     {
-      label: "Lower Limit",
-      value: formatCurrency(confidenceLower),
-      icon: Percent,
+      label: "Minimum Viable Rate",
+      value: minimumViableRate == null ? "Not Found" : `${(minimumViableRate * 100).toFixed(2)}%`,
+      icon: TrendingUp,
       color: "text-blue-600"
     },
     {
-      label: "Upper Limit",
-      value: formatCurrency(confidenceUpper),
-      icon: Calendar,
+      label: "Recommendation Status",
+      value: viable ? "Viable" : "Not Viable",
+      icon: CheckCircle2,
       color: "text-emerald-600"
     }
   ];

@@ -16,7 +16,8 @@ export default function SimulationResults({ results, client }: SimulationResults
   if (!results) return <></>;
 
   const { response } = results;
-  const { statistics, interest_rate_sweep, recommended_interest_rate, request } = response;
+  const { statistics, interest_rate_sweep, recommended_interest_rate, viable, minimum_viable_rate } = response;
+  const { request } = results;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -28,10 +29,10 @@ export default function SimulationResults({ results, client }: SimulationResults
         />
 
         <StatsGrid
-          avgProfit={statistics?.avg_profit || 0}
-          stdDev={statistics?.profit_std_dev || 0}
-          confidenceLower={statistics?.confidence_interval?.lower || 0}
-          confidenceUpper={statistics?.confidence_interval?.upper || 0}
+          estimatedProfit={statistics?.estimated_profit ?? statistics?.avg_profit ?? 0}
+          repaymentProbability={statistics?.repayment_probability || 0}
+          minimumViableRate={minimum_viable_rate ?? null}
+          viable={Boolean(viable)}
         />
 
         <RiskCard
@@ -42,6 +43,7 @@ export default function SimulationResults({ results, client }: SimulationResults
 
         <ExplainableAI
           statistics={statistics}
+          viable={Boolean(viable)}
           payDay={request?.pay_day}
         />
       </div>

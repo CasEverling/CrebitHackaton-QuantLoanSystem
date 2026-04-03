@@ -31,6 +31,7 @@ export interface Statistics {
   repayment_probability: number;
   max_profit: number;
   min_profit: number;
+  estimated_profit?: number;
   confidence_interval: {
     lower: number;
     upper: number;
@@ -50,6 +51,7 @@ export interface MonteCarloResponse {
   paths: number[][];
   statistics: Statistics;
   interest_rate_sweep: InterestRateSweep[];
+  minimum_viable_rate?: number | null;
 }
 
 export interface ApiResponse {
@@ -58,11 +60,38 @@ export interface ApiResponse {
   simulationData: SimulationDataPoint[];
 }
 
+const normalizeProbability = (value: number): number => {
+  if (!Number.isFinite(value)) return 0;
+  if (value > 1) return value / 100;
+  if (value < 0) return 0;
+  return value;
+};
+
+const toDailyRateForMock = (rate: number): number => {
+  if (!Number.isFinite(rate) || rate <= 0) return 0.001;
+
+  // Mock API expects daily rate in [0, 0.01].
+  // Frontend usually works with monthly-like values (e.g. 0.15), so convert when needed.
+  const daily = rate > 0.01 ? rate / 30 : rate;
+  return Math.max(0.0001, Math.min(daily, 0.01));
+};
+
 // ── fetch all clients for the banner list ─────────────────────────────
 export async function fetchClients(): Promise<Client[]> {
   const res = await fetch(`${API_BASE}/clients`);
   if (!res.ok) throw new Error(`Failed to fetch clients: ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  const clients = Array.isArray(data) ? data : data.data ?? [];
+
+  return clients.map((client: any) => ({
+    id: String(client.id ?? ""),
+    name: client.name ?? `Client ${client.id ?? ""}`,
+    occupation: client.occupation ?? "Not provided",
+    location: client.location ?? "Not provided",
+    incomeFixed: Number(client.incomeFixed ?? 0),
+    incomeVariable: Number(client.incomeVariable ?? 0),
+    bankConnected: Boolean(client.bankConnected ?? false),
+  }));
 }
 
 // ── run Monte Carlo simulation for a client ───────────────────────────
@@ -81,18 +110,62 @@ export async function simulateCredit(params: {
     min_profit:        params.minProfit,
   };
 
-  const res = await fetch(`${API_BASE}/analyze`, {
+  const mockBody = {
+    id: String(body.ssn),
+    amount: body.loan_amount,
+    min_interest_day: toDailyRateForMock(body.max_interest_rate),
+  };
+
+  const res = await fetch(`${API_BASE}/simulate`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify(body),
+    body:    JSON.stringify(mockBody),
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error ?? "Simulation failed");
+    throw new Error(err.error ?? err.detail ?? "Simulation failed");
   }
 
-  const data = await res.json();
+  const raw = await res.json();
+  const scenarios = Array.isArray(raw.data) ? raw.data : [];
+
+  const viableScenarios = scenarios.filter((item: any) => (item.expected_profit ?? 0) >= body.min_profit);
+  const recommendedScenario = (viableScenarios[0] ?? scenarios[scenarios.length - 1]) ?? {
+    interest_rate: body.max_interest_rate,
+    risk: 1,
+    expected_profit: 0,
+  };
+
+  const recommendedProbability = 1 - normalizeProbability(recommendedScenario.risk ?? 0);
+
+  const data = {
+    request: body,
+    response: {
+      recommended_interest_rate: recommendedScenario.interest_rate ?? body.max_interest_rate,
+      viable: viableScenarios.length > 0,
+      paths: [],
+      minimum_viable_rate: viableScenarios[0]?.interest_rate ?? null,
+      statistics: {
+        avg_profit: recommendedScenario.expected_profit ?? 0,
+        estimated_profit: recommendedScenario.expected_profit ?? 0,
+        profit_std_dev: 0,
+        repayment_probability: recommendedProbability,
+        max_profit: scenarios.length ? Math.max(...scenarios.map((item: any) => item.expected_profit ?? 0)) : 0,
+        min_profit: scenarios.length ? Math.min(...scenarios.map((item: any) => item.expected_profit ?? 0)) : 0,
+        confidence_interval: {
+          lower: 0,
+          upper: 0,
+          confidence: 0,
+        },
+      },
+      interest_rate_sweep: scenarios.map((item: any) => ({
+        interest_rate: item.interest_rate ?? 0,
+        avg_profit: item.expected_profit ?? 0,
+        repayment_probability: 1 - normalizeProbability(item.risk ?? 0),
+      })),
+    },
+  };
 
   // The backend wraps request + response together.
   // Build simulationData from the paths for the chart.

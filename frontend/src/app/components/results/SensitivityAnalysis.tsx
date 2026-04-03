@@ -31,7 +31,7 @@ export function SensitivityAnalysis({ sweepData, recommendedRate }: SensitivityA
 
         <div className="space-y-3">
           {sweepData.map((item, index) => {
-            const isRecommended = Math.abs(item.interest_rate - recommendedRate) < 0.1;
+            const isRecommended = Math.abs(item.interest_rate - recommendedRate) < 0.0005;
             const probability = (1 - item.repayment_probability) * 100; // Convert to default probability percentage
 
             return (
@@ -50,7 +50,7 @@ export function SensitivityAnalysis({ sweepData, recommendedRate }: SensitivityA
                         ? "bg-indigo-600 text-white"
                         : "bg-slate-200 text-slate-700"
                     }`}>
-                      {item.interest_rate.toFixed(1)}% p.m.
+                      {(item.interest_rate * 100).toFixed(1)}% p.m.
                     </div>
                     {isRecommended && (
                       <span className="text-xs font-semibold text-indigo-600 bg-indigo-100 px-2 py-1 rounded">
@@ -84,12 +84,12 @@ export function SensitivityAnalysis({ sweepData, recommendedRate }: SensitivityA
 
                   {/* Risk Indicator */}
                   <div className="flex items-center gap-2 text-xs">
-                    {probability >= 80 ? (
+                    {probability <= 20 ? (
                       <>
                         <TrendingUp className="w-4 h-4 text-green-600" />
                         <span className="text-green-700 font-medium">Low Risk</span>
                       </>
-                    ) : probability >= 60 ? (
+                    ) : probability <= 40 ? (
                       <>
                         <TrendingUp className="w-4 h-4 text-yellow-600" />
                         <span className="text-yellow-700 font-medium">Moderate Risk</span>

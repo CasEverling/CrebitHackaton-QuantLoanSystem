@@ -19,7 +19,7 @@ export default function Layout() {
               <Building2 className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">GIG-FLOW</h1>
+              <h1 className="text-xl font-bold">Meridian</h1>
               <p className="text-xs text-slate-400">Credit Platform</p>
             </div>
           </div>
@@ -45,8 +45,8 @@ export default function Layout() {
               GM
             </div>
             <div className="text-sm">
-              <p className="font-medium">Gerente Master</p>
-              <p className="text-slate-400 text-xs">admin@gigflow.com</p>
+              <p className="font-medium">Manager</p>
+              <p className="text-slate-400 text-xs">admin@meridian.com</p>
             </div>
           </div>
         </div>

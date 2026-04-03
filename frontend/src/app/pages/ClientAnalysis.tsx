@@ -116,7 +116,7 @@ export default function ClientAnalysis() {
             {isLoading ? (
               <div className="h-[500px] flex flex-col items-center justify-center bg-white rounded-[32px] border border-dashed border-slate-300">
                 <Loader2 className="animate-spin text-primary mb-4" size={48} />
-                <p className="text-muted-foreground font-medium italic">Running 100,000 paths in C++...</p>
+                <p className="text-muted-foreground font-medium italic">Running Monte Carlo simulation in C++...</p>
               </div>
             ) : simulationResults ? (
               <SimulationResults results={simulationResults} client={client} />
